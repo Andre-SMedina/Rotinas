@@ -40,9 +40,16 @@ function pegarData() {
 }
 
 function somarTempo(data) {
+  let totMin = 0;
   for (const e of data) {
-    console.log(e);
+    if (e.fim) {
+      totMin +=
+        parseInt(e.total.split(":")[0]) * 60 + parseInt(e.total.split(":")[1]);
+    }
   }
+  const horaTotal = parseInt(totMin / 60);
+  const minTotal = totMin - horaTotal * 60;
+  return `Total: ${("0" + horaTotal).slice(-2)}:${("0" + minTotal).slice(-2)}`;
 }
 
 function historico(hist) {

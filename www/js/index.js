@@ -2,6 +2,7 @@ let banco = JSON.parse(localStorage.getItem("banco"));
 const btnSalvar = document.querySelector("#btnSalvar");
 const atividadesLista = document.querySelector("#atividadesLista");
 const iniciado = document.querySelector("#iniciado");
+const histDia = document.querySelector("#histdia");
 
 async function bancoCreate() {
   await localStorage.setItem(
@@ -35,6 +36,10 @@ function pegarData() {
   ).slice(-2)}`;
 
   return [dataAtual, horaAtual];
+}
+
+function somarTempo(t1, t2) {
+  //
 }
 
 function controle(id) {
@@ -133,6 +138,11 @@ setTimeout(() => {
     historico.map((e) => {
       if (!e.fim) {
         iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
+      } else {
+        const p = document.createElement("p");
+        p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
+        histDia.appendChild(p);
+        histDia.appendChild(document.createElement("hr"));
       }
     });
   }

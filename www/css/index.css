@@ -20,8 +20,7 @@ input {
   padding: 2px;
 }
 span {
-  margin-left: 15px;
-  font-size: 1.1em;
+  color: rgb(127, 254, 254);
 }
 button,
 input {
@@ -31,6 +30,11 @@ button {
   padding: 5px 20px;
   border-radius: 10px;
   font-weight: bold;
+}
+
+#histdia {
+  padding: 0 20px;
+  margin: 10px auto;
 }
 
 .font {

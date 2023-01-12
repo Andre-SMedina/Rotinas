@@ -3,6 +3,7 @@ const btnSalvar = document.querySelector("#btnSalvar");
 const atividadesLista = document.querySelector("#atividadesLista");
 const iniciado = document.querySelector("#iniciado");
 const histDia = document.querySelector("#histdia");
+const total = document.querySelector("#total");
 
 async function bancoCreate() {
   await localStorage.setItem(
@@ -38,8 +39,28 @@ function pegarData() {
   return [dataAtual, horaAtual];
 }
 
-function somarTempo(t1, t2) {
-  //
+function somarTempo(data) {
+  for (const e of data) {
+    console.log(e);
+  }
+}
+
+function historico(hist) {
+  const soma = somarTempo(hist);
+  histDia.innerHTML = "";
+  hist.map((e) => {
+    if (!e.fim) {
+      iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
+    } else {
+      const p = document.createElement("p");
+      const hr = document.createElement("hr");
+      p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
+      histDia.appendChild(p);
+      histDia.appendChild(hr);
+    }
+  });
+
+  total.innerText = soma;
 }
 
 function controle(id) {
@@ -66,12 +87,14 @@ function controle(id) {
           // mensagem para o usuário
           console.log("excedeu");
         } else {
-          const totMinAnt =
-            parseInt(e.total.split(":")[0]) * 60 +
-            parseInt(e.total.split(":")[1]);
-          const totMinFinal = totMin + totMinAnt;
-          const horaTotal = parseInt(totMinFinal / 60);
-          const minTotal = totMinFinal - horaTotal * 60;
+          // const totMinAnt =
+          //   parseInt(e.total.split(":")[0]) * 60 +
+          //   parseInt(e.total.split(":")[1]);
+          // const totMinFinal = totMin + totMinAnt;
+          // const horaTotal = parseInt(totMinFinal / 60);
+          // const minTotal = totMinFinal - horaTotal * 60;
+          const horaTotal = parseInt(totMin / 60);
+          const minTotal = totMin - horaTotal * 60;
 
           const totalFinal = `${("0" + horaTotal).slice(-2)}:${(
             "0" + minTotal
@@ -83,11 +106,12 @@ function controle(id) {
       }
     });
 
+    historico(historicoAtual);
+
     historicoAtual.push({
       data: dataAtual,
       inicio: horaAtual,
       fim: "",
-      total: "00:00",
     });
   } else if (!banco.ativo) {
     const [dataAtual, horaAtual] = pegarData();
@@ -133,18 +157,20 @@ setTimeout(() => {
     });
   }
   if (banco.ativo) {
-    const historico = banco.historico[banco.ativo];
+    const hist = banco.historico[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
-    historico.map((e) => {
-      if (!e.fim) {
-        iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
-      } else {
-        const p = document.createElement("p");
-        p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
-        histDia.appendChild(p);
-        histDia.appendChild(document.createElement("hr"));
-      }
-    });
+    historico(hist);
+
+    // historico.map((e) => {
+    //   if (!e.fim) {
+    //     iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
+    //   } else {
+    //     const p = document.createElement("p");
+    //     p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
+    //     histDia.appendChild(p);
+    //     histDia.appendChild(document.createElement("hr"));
+    //   }
+    // });
   }
 }, 300);
 

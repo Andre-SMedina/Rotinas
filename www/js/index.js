@@ -10,12 +10,13 @@ async function bancoCreate() {
   await localStorage.setItem(
     "banco",
     JSON.stringify({
-      atividades: [],
-      ativo: "",
+      atividades: ["nadar", "correr"],
+      ativo: "nadar",
       historico: {
         nadar: [
-          { data: "05/05/2020", inicio: "12:30", fim: "13:30", total: "" },
+          { data: "12/01/2023", inicio: "07:30", fim: "", total: "00:00" },
         ],
+        // nadar: [],
         correr: [],
       },
     })
@@ -27,7 +28,7 @@ if (!banco) {
   bancoCreate();
 }
 
-function controle(id) {
+function pegarData() {
   const time = new Date();
   const dias = ("0" + time.getDate()).slice(-2);
   const mes = ("0" + (time.getMonth() + 1)).slice(-2);
@@ -36,21 +37,75 @@ function controle(id) {
   const horaAtual = `${("0" + time.getHours()).slice(-2)}:${(
     "0" + time.getMinutes()
   ).slice(-2)}`;
-  const historico = banco.historico[id];
 
-  iniciado.innerText = `${id} iniciado`;
-  dia.innerText = `Dia: ${dataAtual}`;
-  hora.innerText = `Hora: ${horaAtual}`;
+  return [dataAtual, horaAtual];
+}
 
-  if (historico) {
-    historico.map((e) => {
-      if (e.data == dataAtual && !e.fim) {
-        //
+function controle(id) {
+  if (banco.ativo != id && banco.ativo) {
+    const [dataAtual, horaAtual] = pegarData();
+
+    iniciado.innerText = `${id} iniciado`;
+    dia.innerText = `Dia: ${dataAtual}`;
+    hora.innerText = `Hora: ${horaAtual}`;
+
+    const historicoAnterior = banco.historico[banco.ativo];
+    const historicoAtual = banco.historico[id];
+
+    historicoAnterior.map((e) => {
+      if (!e.fim && dataAtual == e.data) {
+        const dataCalcIni = `${e.data.split("/").reverse().join("-")}T${
+          e.inicio
+        }:00`;
+        const dataCalcFim = `${dataAtual
+          .split("/")
+          .reverse()
+          .join("-")}T${horaAtual}:00`;
+        const totMin = (new Date(dataCalcFim) - new Date(dataCalcIni)) / 60000;
+
+        if (totMin > 1440) {
+          // mensagem para o usuário
+          console.log("excedeu");
+        } else {
+          const horas = parseInt(totMin / 60);
+          const minutos = totMin - horas * 60;
+          const totalAnterior = e.total.split("/");
+          const totalAtual = `${("0" + horas).slice(-2)}:${(
+            "0" + minutos
+          ).slice(-2)}`.split("/");
+
+          const totalFinal = 0;
+
+          e.fim = horaAtual;
+          // e.total = `${("0" + horas).slice(-2)}:${("0" + minutos).slice(-2)}`;
+          e.total = totalFinal;
+          console.log(totalAtual);
+          console.log(totalAnterior);
+          console.log(totalFinal);
+        }
       }
     });
-    historico.push({ data: dataAtual, inicio: horaAtual, fim: "", total: "" });
-    console.log(historico);
+
+    historicoAtual.push({
+      data: dataAtual,
+      inicio: horaAtual,
+      fim: "",
+      total: "",
+    });
+  } else if (!banco.ativo) {
+    const [dataAtual, horaAtual] = pegarData();
+    iniciado.innerText = `${id} iniciado`;
+    dia.innerText = `Dia: ${dataAtual}`;
+    hora.innerText = `Hora: ${horaAtual}`;
+
+    banco.historico[id].push({
+      data: dataAtual,
+      inicio: horaAtual,
+      fim: "",
+      total: "00:00",
+    });
   }
+  console.log(banco.historico);
 }
 
 //adiciona as atividades na lista
@@ -62,14 +117,14 @@ function addLista(id) {
   atividadesLista.appendChild(h3);
   h3.addEventListener("click", async () => {
     if (!banco.ativo) {
-      banco.ativo = id;
       h3.classList.add("ativo");
-      controle(banco.ativo);
+      controle(id);
+      banco.ativo = id;
     } else {
       document.querySelector(`#${banco.ativo}`).classList.remove("ativo");
       h3.classList.add("ativo");
+      controle(id);
       banco.ativo = id;
-      controle(banco.ativo);
     }
     await localStorage.setItem("banco", JSON.stringify(banco));
   });
@@ -83,7 +138,15 @@ setTimeout(() => {
     });
   }
   if (banco.ativo) {
+    const historico = banco.historico[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
+    iniciado.innerText = `${banco.ativo} iniciado`;
+    historico.map((e) => {
+      if (!e.fim) {
+        dia.innerText = `Dia: ${e.data}`;
+        hora.innerText = `Hora: ${e.inicio}`;
+      }
+    });
   }
 }, 300);
 

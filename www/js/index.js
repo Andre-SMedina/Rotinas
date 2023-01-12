@@ -2,9 +2,6 @@ let banco = JSON.parse(localStorage.getItem("banco"));
 const btnSalvar = document.querySelector("#btnSalvar");
 const atividadesLista = document.querySelector("#atividadesLista");
 const iniciado = document.querySelector("#iniciado");
-const hora = document.querySelector("#hora");
-const dia = document.querySelector("#dia");
-const total = document.querySelector("#total");
 
 async function bancoCreate() {
   await localStorage.setItem(
@@ -16,7 +13,6 @@ async function bancoCreate() {
         nadar: [
           { data: "12/01/2023", inicio: "07:30", fim: "", total: "00:00" },
         ],
-        // nadar: [],
         correr: [],
       },
     })
@@ -45,9 +41,7 @@ function controle(id) {
   if (banco.ativo != id && banco.ativo) {
     const [dataAtual, horaAtual] = pegarData();
 
-    iniciado.innerText = `${id} iniciado`;
-    dia.innerText = `Dia: ${dataAtual}`;
-    hora.innerText = `Hora: ${horaAtual}`;
+    iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
     const historicoAnterior = banco.historico[banco.ativo];
     const historicoAtual = banco.historico[id];
@@ -67,21 +61,19 @@ function controle(id) {
           // mensagem para o usuário
           console.log("excedeu");
         } else {
-          const horas = parseInt(totMin / 60);
-          const minutos = totMin - horas * 60;
-          const totalAnterior = e.total.split("/");
-          const totalAtual = `${("0" + horas).slice(-2)}:${(
-            "0" + minutos
-          ).slice(-2)}`.split("/");
+          const totMinAnt =
+            parseInt(e.total.split(":")[0]) * 60 +
+            parseInt(e.total.split(":")[1]);
+          const totMinFinal = totMin + totMinAnt;
+          const horaTotal = parseInt(totMinFinal / 60);
+          const minTotal = totMinFinal - horaTotal * 60;
 
-          const totalFinal = 0;
+          const totalFinal = `${("0" + horaTotal).slice(-2)}:${(
+            "0" + minTotal
+          ).slice(-2)}`;
 
           e.fim = horaAtual;
-          // e.total = `${("0" + horas).slice(-2)}:${("0" + minutos).slice(-2)}`;
           e.total = totalFinal;
-          console.log(totalAtual);
-          console.log(totalAnterior);
-          console.log(totalFinal);
         }
       }
     });
@@ -90,13 +82,11 @@ function controle(id) {
       data: dataAtual,
       inicio: horaAtual,
       fim: "",
-      total: "",
+      total: "00:00",
     });
   } else if (!banco.ativo) {
     const [dataAtual, horaAtual] = pegarData();
-    iniciado.innerText = `${id} iniciado`;
-    dia.innerText = `Dia: ${dataAtual}`;
-    hora.innerText = `Hora: ${horaAtual}`;
+    iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
     banco.historico[id].push({
       data: dataAtual,
@@ -140,11 +130,9 @@ setTimeout(() => {
   if (banco.ativo) {
     const historico = banco.historico[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
-    iniciado.innerText = `${banco.ativo} iniciado`;
     historico.map((e) => {
       if (!e.fim) {
-        dia.innerText = `Dia: ${e.data}`;
-        hora.innerText = `Hora: ${e.inicio}`;
+        iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
       }
     });
   }

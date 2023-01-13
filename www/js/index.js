@@ -181,6 +181,7 @@ btnSalvar.addEventListener("click", async () => {
       }
     } else {
       banco.atividades.push(inputAtividades);
+      banco.historico[inputAtividades] = [];
       addLista(inputAtividades);
       document.querySelector("#inputAtividades").value = "";
     }

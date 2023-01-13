@@ -10,11 +10,9 @@ async function bancoCreate() {
     "banco",
     JSON.stringify({
       atividades: ["nadar", "correr"],
-      ativo: "nadar",
+      ativo: "",
       historico: {
-        nadar: [
-          { data: "12/01/2023", inicio: "07:30", fim: "", total: "00:00" },
-        ],
+        nadar: [],
         correr: [],
       },
     })
@@ -60,10 +58,9 @@ function historico(hist) {
       iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
     } else {
       const p = document.createElement("p");
-      const hr = document.createElement("hr");
       p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
       histDia.appendChild(p);
-      histDia.appendChild(hr);
+      histDia.appendChild(document.createElement("hr"));
     }
   });
 
@@ -94,12 +91,6 @@ function controle(id) {
           // mensagem para o usuário
           console.log("excedeu");
         } else {
-          // const totMinAnt =
-          //   parseInt(e.total.split(":")[0]) * 60 +
-          //   parseInt(e.total.split(":")[1]);
-          // const totMinFinal = totMin + totMinAnt;
-          // const horaTotal = parseInt(totMinFinal / 60);
-          // const minTotal = totMinFinal - horaTotal * 60;
           const horaTotal = parseInt(totMin / 60);
           const minTotal = totMin - horaTotal * 60;
 
@@ -167,17 +158,6 @@ setTimeout(() => {
     const hist = banco.historico[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
     historico(hist);
-
-    // historico.map((e) => {
-    //   if (!e.fim) {
-    //     iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
-    //   } else {
-    //     const p = document.createElement("p");
-    //     p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
-    //     histDia.appendChild(p);
-    //     histDia.appendChild(document.createElement("hr"));
-    //   }
-    // });
   }
 }, 300);
 

@@ -2,7 +2,8 @@ let banco = JSON.parse(localStorage.getItem("banco"));
 const btnSalvar = document.querySelector("#btnSalvar");
 const atividadesLista = document.querySelector("#atividadesLista");
 const iniciado = document.querySelector("#iniciado");
-const histDia = document.querySelector("#histdia");
+const registroDia = document.querySelector("#registroDia");
+const historicoDiv = document.querySelector("#historicoDiv");
 const total = document.querySelector("#total");
 
 async function bancoCreate() {
@@ -12,7 +13,7 @@ async function bancoCreate() {
       atividades: ["nadar", "correr"],
       ativo: "",
       registro: {
-        nadar: [],
+        nadar: [{ data: "12/01/2023", registros: [], total: "" }],
         correr: [],
       },
     })
@@ -50,22 +51,29 @@ function somarTempo(data) {
   return `Total: ${("0" + horaTotal).slice(-2)}:${("0" + minTotal).slice(-2)}`;
 }
 
-function historico(id) {
-  //
+function historico(registro) {
+  historicoDiv.innerHTML = "";
+  const [dataAtual] = pegarData();
+  registro.map((e) => {
+    if (e.data != dataAtual) {
+      console.log("ok");
+    }
+    const p = document.createElement("p");
+  });
 }
 
 //adiciona um registro na lista dos iniciados do dia atual
-function registro(hist) {
-  const soma = somarTempo(hist);
-  histDia.innerHTML = "";
-  hist.map((e) => {
+function registro(reg) {
+  const soma = somarTempo(reg);
+  registroDia.innerHTML = "";
+  reg.map((e) => {
     if (!e.fim) {
       iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
     } else {
       const p = document.createElement("p");
       p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
-      histDia.appendChild(p);
-      histDia.appendChild(document.createElement("hr"));
+      registroDia.appendChild(p);
+      registroDia.appendChild(document.createElement("hr"));
     }
   });
 
@@ -79,10 +87,10 @@ function controle(id) {
 
     iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
-    const historicoAnterior = banco.registro[banco.ativo];
+    const registroAnterior = banco.registro[banco.ativo];
     const registroAtual = banco.registro[id];
 
-    historicoAnterior.map((e) => {
+    registroAnterior.map((e) => {
       if (!e.fim && dataAtual == e.data) {
         const dataCalcIni = `${e.data.split("/").reverse().join("-")}T${
           e.inicio
@@ -117,6 +125,8 @@ function controle(id) {
       inicio: horaAtual,
       fim: "",
     });
+
+    historico(registroAtual);
   } else if (!banco.ativo) {
     const [dataAtual, horaAtual] = pegarData();
     iniciado.innerText = `${id} iniciado ${horaAtual}`;
@@ -161,9 +171,9 @@ setTimeout(() => {
     });
   }
   if (banco.ativo) {
-    const hist = banco.registro[banco.ativo];
+    const reg = banco.registro[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
-    registro(hist);
+    registro(reg);
   }
 }, 300);
 

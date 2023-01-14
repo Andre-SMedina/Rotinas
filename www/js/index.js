@@ -11,7 +11,7 @@ async function bancoCreate() {
     JSON.stringify({
       atividades: ["nadar", "correr"],
       ativo: "",
-      historico: {
+      registro: {
         nadar: [],
         correr: [],
       },
@@ -50,7 +50,12 @@ function somarTempo(data) {
   return `Total: ${("0" + horaTotal).slice(-2)}:${("0" + minTotal).slice(-2)}`;
 }
 
-function historico(hist) {
+function historico(id) {
+  //
+}
+
+//adiciona um registro na lista dos iniciados do dia atual
+function registro(hist) {
   const soma = somarTempo(hist);
   histDia.innerHTML = "";
   hist.map((e) => {
@@ -67,14 +72,15 @@ function historico(hist) {
   total.innerText = soma;
 }
 
+//executa ação ao clicar em uma atividade
 function controle(id) {
   if (banco.ativo != id && banco.ativo) {
     const [dataAtual, horaAtual] = pegarData();
 
     iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
-    const historicoAnterior = banco.historico[banco.ativo];
-    const historicoAtual = banco.historico[id];
+    const historicoAnterior = banco.registro[banco.ativo];
+    const registroAtual = banco.registro[id];
 
     historicoAnterior.map((e) => {
       if (!e.fim && dataAtual == e.data) {
@@ -104,9 +110,9 @@ function controle(id) {
       }
     });
 
-    historico(historicoAtual);
+    registro(registroAtual);
 
-    historicoAtual.push({
+    registroAtual.push({
       data: dataAtual,
       inicio: horaAtual,
       fim: "",
@@ -115,14 +121,14 @@ function controle(id) {
     const [dataAtual, horaAtual] = pegarData();
     iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
-    banco.historico[id].push({
+    banco.registro[id].push({
       data: dataAtual,
       inicio: horaAtual,
       fim: "",
       total: "00:00",
     });
   }
-  console.log(banco.historico);
+  console.log(banco.registro);
 }
 
 //adiciona as atividades na lista
@@ -155,9 +161,9 @@ setTimeout(() => {
     });
   }
   if (banco.ativo) {
-    const hist = banco.historico[banco.ativo];
+    const hist = banco.registro[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
-    historico(hist);
+    registro(hist);
   }
 }, 300);
 
@@ -181,7 +187,7 @@ btnSalvar.addEventListener("click", async () => {
       }
     } else {
       banco.atividades.push(inputAtividades);
-      banco.historico[inputAtividades] = [];
+      banco.registro[inputAtividades] = [];
       addLista(inputAtividades);
       document.querySelector("#inputAtividades").value = "";
     }

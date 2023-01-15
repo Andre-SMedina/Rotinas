@@ -10,12 +10,9 @@ async function bancoCreate() {
   await localStorage.setItem(
     "banco",
     JSON.stringify({
-      atividades: ["nadar", "correr"],
+      atividades: [],
       ativo: "",
-      registro: {
-        nadar: [{ data: "12/01/2023", registros: [], total: "" }],
-        correr: [],
-      },
+      registro: {},
     })
   );
   banco = JSON.parse(localStorage.getItem("banco"));
@@ -38,14 +35,21 @@ function pegarData() {
   return [dataAtual, horaAtual];
 }
 
-function somarTempo(data) {
+function somarTempo(registro, data) {
   let totMin = 0;
-  for (const e of data) {
-    if (e.fim) {
-      totMin +=
-        parseInt(e.total.split(":")[0]) * 60 + parseInt(e.total.split(":")[1]);
+
+  for (const e of registro) {
+    if (e.data == data) {
+      for (const i of e.registros) {
+        if (i.fim) {
+          totMin +=
+            parseInt(i.total.split(":")[0]) * 60 +
+            parseInt(i.total.split(":")[1]);
+        }
+      }
     }
   }
+
   const horaTotal = parseInt(totMin / 60);
   const minTotal = totMin - horaTotal * 60;
   return `Total: ${("0" + horaTotal).slice(-2)}:${("0" + minTotal).slice(-2)}`;
@@ -63,17 +67,21 @@ function historico(registro) {
 }
 
 //adiciona um registro na lista dos iniciados do dia atual
-function registro(reg) {
-  const soma = somarTempo(reg);
+function registro(reg, data) {
+  const soma = somarTempo(reg, data);
   registroDia.innerHTML = "";
   reg.map((e) => {
-    if (!e.fim) {
-      iniciado.innerText = `${banco.ativo} iniciado ${e.inicio}`;
-    } else {
-      const p = document.createElement("p");
-      p.innerHTML = `<span>Início:</span> ${e.inicio} <span>Fim:</span> ${e.fim} <span>Total:</span> ${e.total}`;
-      registroDia.appendChild(p);
-      registroDia.appendChild(document.createElement("hr"));
+    if (e.data == data) {
+      for (const i of e.registros) {
+        if (!i.fim) {
+          iniciado.innerText = `${banco.ativo} iniciado ${i.inicio}`;
+        } else {
+          const p = document.createElement("p");
+          p.innerHTML = `<span>Início:</span> ${i.inicio} <span>Fim:</span> ${i.fim} <span>Total:</span> ${i.total}`;
+          registroDia.appendChild(p);
+          registroDia.appendChild(document.createElement("hr"));
+        }
+      }
     }
   });
 
@@ -91,54 +99,67 @@ function controle(id) {
     const registroAtual = banco.registro[id];
 
     registroAnterior.map((e) => {
-      if (!e.fim && dataAtual == e.data) {
-        const dataCalcIni = `${e.data.split("/").reverse().join("-")}T${
-          e.inicio
-        }:00`;
-        const dataCalcFim = `${dataAtual
-          .split("/")
-          .reverse()
-          .join("-")}T${horaAtual}:00`;
-        const totMin = (new Date(dataCalcFim) - new Date(dataCalcIni)) / 60000;
+      if (e.data == dataAtual) {
+        e.registros.map((f) => {
+          if (!f.fim) {
+            const dataCalcIni = `${dataAtual.split("/").reverse().join("-")}T${
+              f.inicio
+            }:00`;
+            const dataCalcFim = `${dataAtual
+              .split("/")
+              .reverse()
+              .join("-")}T${horaAtual}:00`;
+            const totMin =
+              (new Date(dataCalcFim) - new Date(dataCalcIni)) / 60000;
 
-        if (totMin > 1440) {
-          // mensagem para o usuário
-          console.log("excedeu");
-        } else {
-          const horaTotal = parseInt(totMin / 60);
-          const minTotal = totMin - horaTotal * 60;
+            if (totMin > 1440) {
+              // mensagem para o usuário
+              console.log("excedeu");
+            } else {
+              const horaTotal = parseInt(totMin / 60);
+              const minTotal = totMin - horaTotal * 60;
 
-          const totalFinal = `${("0" + horaTotal).slice(-2)}:${(
-            "0" + minTotal
-          ).slice(-2)}`;
+              const totalFinal = `${("0" + horaTotal).slice(-2)}:${(
+                "0" + minTotal
+              ).slice(-2)}`;
 
-          e.fim = horaAtual;
-          e.total = totalFinal;
-        }
+              f.fim = horaAtual;
+              f.total = totalFinal;
+            }
+          }
+        });
       }
     });
 
-    registro(registroAtual);
+    registro(registroAtual, dataAtual);
 
-    registroAtual.push({
-      data: dataAtual,
-      inicio: horaAtual,
-      fim: "",
+    registroAtual.map((e) => {
+      if (e.data == dataAtual) {
+        e.registros.push({ inicio: horaAtual, fim: "", total: "" });
+      }
     });
 
-    historico(registroAtual);
+    if (registroAtual.length == 0) {
+      registroAtual.push({
+        data: dataAtual,
+        registros: [{ inicio: horaAtual, fim: "", total: "" }],
+        total: "",
+      });
+    }
+
+    console.log(registroAtual[0].registros);
+
+    // historico(registroAtual);
   } else if (!banco.ativo) {
     const [dataAtual, horaAtual] = pegarData();
     iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
     banco.registro[id].push({
       data: dataAtual,
-      inicio: horaAtual,
-      fim: "",
-      total: "00:00",
+      registros: [{ inicio: horaAtual, fim: "", total: "" }],
+      total: "",
     });
   }
-  console.log(banco.registro);
 }
 
 //adiciona as atividades na lista
@@ -171,9 +192,10 @@ setTimeout(() => {
     });
   }
   if (banco.ativo) {
+    const [dataAtual] = pegarData();
     const reg = banco.registro[banco.ativo];
     document.querySelector(`#${banco.ativo}`).classList.add("ativo");
-    registro(reg);
+    registro(reg, dataAtual);
   }
 }, 300);
 
@@ -197,7 +219,9 @@ btnSalvar.addEventListener("click", async () => {
       }
     } else {
       banco.atividades.push(inputAtividades);
-      banco.registro[inputAtividades] = [];
+      if (!banco.registro[inputAtividades]) {
+        banco.registro[inputAtividades] = [];
+      }
       addLista(inputAtividades);
       document.querySelector("#inputAtividades").value = "";
     }

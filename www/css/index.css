@@ -60,7 +60,7 @@ button {
 }
 .itens,
 .itensHist {
-  padding: 8px 15px;
+  padding: 5px 10px;
   border-radius: 10px;
   background-color: rgb(137, 0, 210);
   text-transform: capitalize;
@@ -73,6 +73,7 @@ button {
 #historicoDiv {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
   padding: 0 20px;
   text-transform: capitalize;
   text-decoration: underline;

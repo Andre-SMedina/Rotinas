@@ -35,12 +35,12 @@ function pegarData() {
   const dias = ("0" + time.getDate()).slice(-2);
   const mes = ("0" + (time.getMonth() + 1)).slice(-2);
   const ano = time.getFullYear();
-  // const dataAtual = `${dias}/${mes}/${ano}`;
-  const dataAtual = "03/01/2023";
-  // const horaAtual = `${("0" + time.getHours()).slice(-2)}:${(
-  //   "0" + time.getMinutes()
-  // ).slice(-2)}`;
-  const horaAtual = "06:10";
+  const dataAtual = `${dias}/${mes}/${ano}`;
+  // const dataAtual = "04/01/2023";
+  const horaAtual = `${("0" + time.getHours()).slice(-2)}:${(
+    "0" + time.getMinutes()
+  ).slice(-2)}`;
+  // const horaAtual = "06:10";
 
   return [dataAtual, horaAtual];
 }
@@ -72,7 +72,7 @@ function registro(reg, data) {
   registroDia.innerHTML = "";
 
   reg.map((e) => {
-    if (e.data == data) {
+    if (e.data == data || e.aberto) {
       total.innerText = somarTempo(e);
       for (const i of e.registros) {
         if (!i.fim) {
@@ -174,7 +174,7 @@ function controle(id) {
   }
 }
 
-//adiciona as atividades na lista
+//adiciona as atividades e cria os elementos
 function addLista(id) {
   const h3 = document.createElement("h3");
   h3.innerText = id;
@@ -223,7 +223,7 @@ function addLista(id) {
   historicoDiv.appendChild(label);
 }
 
-//carrega as atividades cadastradas, no painel
+//carrega as atividades cadastradas no painel ao iniciar o sistema
 setTimeout(() => {
   if (banco.atividades.length > 0) {
     banco.atividades.map((e) => {

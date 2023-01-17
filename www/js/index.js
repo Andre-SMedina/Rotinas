@@ -11,9 +11,9 @@ async function bancoCreate() {
   await localStorage.setItem(
     "banco",
     JSON.stringify({
-      atividades: [],
+      atividades: ["ocioso"],
       ativo: "",
-      registro: {},
+      registro: { ocioso: [] },
     })
   );
   banco = JSON.parse(localStorage.getItem("banco"));
@@ -23,32 +23,36 @@ if (!banco) {
   bancoCreate();
 }
 
+function removeClass(classe) {
+  const remove = document.querySelector(`.${classe}`);
+  if (remove) {
+    remove.classList.remove(classe);
+  }
+}
+
 function pegarData() {
   const time = new Date();
   const dias = ("0" + time.getDate()).slice(-2);
   const mes = ("0" + (time.getMonth() + 1)).slice(-2);
   const ano = time.getFullYear();
   // const dataAtual = `${dias}/${mes}/${ano}`;
-  const dataAtual = "17/01/2023";
-  const horaAtual = `${("0" + time.getHours()).slice(-2)}:${(
-    "0" + time.getMinutes()
-  ).slice(-2)}`;
+  const dataAtual = "03/01/2023";
+  // const horaAtual = `${("0" + time.getHours()).slice(-2)}:${(
+  //   "0" + time.getMinutes()
+  // ).slice(-2)}`;
+  const horaAtual = "06:10";
 
   return [dataAtual, horaAtual];
 }
 
-function somarTempo(registro, data) {
+//somar o tempo total do dia
+function somarTempo(registro) {
   let totMin = 0;
 
-  for (const e of registro) {
-    if (e.data == data) {
-      for (const i of e.registros) {
-        if (i.fim) {
-          totMin +=
-            parseInt(i.total.split(":")[0]) * 60 +
-            parseInt(i.total.split(":")[1]);
-        }
-      }
+  for (const i of registro.registros) {
+    if (i.fim) {
+      totMin +=
+        parseInt(i.total.split(":")[0]) * 60 + parseInt(i.total.split(":")[1]);
     }
   }
 
@@ -58,20 +62,18 @@ function somarTempo(registro, data) {
     -2
   )}`;
 
-  for (const f of registro) {
-    if (f.data == data) {
-      f.total = total;
-    }
-  }
+  registro.total = total;
+
   return total;
 }
 
-//adiciona um registro na lista dos iniciados do dia atual
+//adiciona um registro na lista de registros do dia atual
 function registro(reg, data) {
-  const soma = somarTempo(reg, data);
   registroDia.innerHTML = "";
+
   reg.map((e) => {
     if (e.data == data) {
+      total.innerText = somarTempo(e);
       for (const i of e.registros) {
         if (!i.fim) {
           iniciado.innerText = `${banco.ativo} iniciado ${i.inicio}`;
@@ -84,37 +86,28 @@ function registro(reg, data) {
       }
     }
   });
-
-  total.innerText = soma;
 }
 
-function removeClass(classe) {
-  const remove = document.querySelector(`.${classe}`);
-  if (remove) {
-    remove.classList.remove(classe);
-  }
-}
-
-function tempoFinal(registro) {
-  const [dataAtual, horaAtual] = pegarData();
-
+function tempoFinal(registro, data, hora) {
   registro.map((e) => {
-    if (e.data == dataAtual) {
+    if (e.data == data || e.aberto == true) {
+      e.aberto = false;
       e.registros.map((f) => {
         if (!f.fim) {
-          const dataCalcIni = `${dataAtual.split("/").reverse().join("-")}T${
+          const dataCalcIni = `${e.data.split("/").reverse().join("-")}T${
             f.inicio
           }:00`;
-          const dataCalcFim = `${dataAtual
+          const dataCalcFim = `${data
             .split("/")
             .reverse()
-            .join("-")}T${horaAtual}:00`;
+            .join("-")}T${hora}:00`;
           const totMin =
             (new Date(dataCalcFim) - new Date(dataCalcIni)) / 60000;
 
           if (totMin > 1440) {
             // mensagem para o usuário
-            console.log("excedeu");
+            f.fim = "Max24h";
+            f.total = "00:00";
           } else {
             const horaTotal = parseInt(totMin / 60);
             const minTotal = totMin - horaTotal * 60;
@@ -123,11 +116,12 @@ function tempoFinal(registro) {
               "0" + minTotal
             ).slice(-2)}`;
 
-            f.fim = horaAtual;
+            f.fim = hora;
             f.total = totalFinal;
           }
         }
       });
+      somarTempo(e);
     }
   });
 }
@@ -147,47 +141,15 @@ function controle(id) {
     const registroAtual = banco.registro[id];
     let find = false;
 
-    tempoFinal(registroAnterior);
+    tempoFinal(registroAnterior, dataAtual, horaAtual);
     registro(registroAtual, dataAtual);
-    somarTempo(registroAnterior, dataAtual);
-    // registroAnterior.map((e) => {
-    //   if (e.data == dataAtual) {
-    //     e.registros.map((f) => {
-    //       if (!f.fim) {
-    //         const dataCalcIni = `${dataAtual.split("/").reverse().join("-")}T${
-    //           f.inicio
-    //         }:00`;
-    //         const dataCalcFim = `${dataAtual
-    //           .split("/")
-    //           .reverse()
-    //           .join("-")}T${horaAtual}:00`;
-    //         const totMin =
-    //           (new Date(dataCalcFim) - new Date(dataCalcIni)) / 60000;
-
-    //         if (totMin > 1440) {
-    //           // mensagem para o usuário
-    //           console.log("excedeu");
-    //         } else {
-    //           const horaTotal = parseInt(totMin / 60);
-    //           const minTotal = totMin - horaTotal * 60;
-
-    //           const totalFinal = `${("0" + horaTotal).slice(-2)}:${(
-    //             "0" + minTotal
-    //           ).slice(-2)}`;
-
-    //           f.fim = horaAtual;
-    //           f.total = totalFinal;
-    //         }
-    //       }
-    //     });
-    //   }
-    // });
 
     //Se já teve registro antes, adiciona mais um
     registroAtual.map((e) => {
       if (e.data == dataAtual) {
         e.registros.push({ inicio: horaAtual, fim: "", total: "" });
         find = true;
+        e.aberto = true;
       }
     });
 
@@ -197,26 +159,17 @@ function controle(id) {
         data: dataAtual,
         registros: [{ inicio: horaAtual, fim: "", total: "" }],
         total: "",
+        aberto: true,
       });
     }
-  } else if (banco.ativo == id) {
-    removeClass("ativoHist");
-    iniciado.innerText = "";
-    historicoLista.innerHTML = "";
-
-    const registroAtual = banco.registro[id];
-    tempoFinal(registroAtual);
-    registro(registroAtual, dataAtual);
-    somarTempo(registroAtual, dataAtual);
-    // document.querySelector(`#${banco.ativo}`).classList.remove("ativo");
   } else if (!banco.ativo) {
-    console.log(banco.registro[id]);
     iniciado.innerText = `${id} iniciado ${horaAtual}`;
 
     banco.registro[id].push({
       data: dataAtual,
       registros: [{ inicio: horaAtual, fim: "", total: "" }],
       total: "",
+      aberto: true,
     });
   }
 }
